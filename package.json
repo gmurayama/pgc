@@ -14,13 +14,16 @@
     "migrate": "truffle migrate",
     "migrate:reset": "npm run migrate -- --reset",
     "deploy": "npm run compile && npm run migrate",
-    "benchmarks": "npm run build-ts && truffle exec ./scripts/run_model_er.js"
+    "benchmarks": "npm run build-ts && truffle exec ./scripts/run_model_er.js",
+    "generate-data": "ts-node ./scripts/generate_data.ts"
   },
   "author": "Gustavo Murayama <gmurayama@outlook.com>",
   "devDependencies": {
     "@typechain/truffle-v5": "~7.0.0",
+    "@types/chance": "~1.1.3",
     "@types/node": "^17.0.21",
     "chai": "~4.3.6",
+    "chance": "~1.1.8",
     "mocha": "~9.2.0",
     "nodemon": "~2.0.15",
     "rimraf": "~3.0.2",

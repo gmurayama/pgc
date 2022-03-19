@@ -25,19 +25,34 @@ async function main() {
 
   const transactions: Array<Transaction> = [];
 
+  console.log(`[${new Date()}] Start populating products`);
   let tx = await populateProducts(modelER);
   transactions.push(...tx);
+  console.log(`[${new Date()}] End populating products`);
 
+  console.log(`[${new Date()}] Start populating cart items`);
   tx = await populateCartItems(modelER);
   transactions.push(...tx);
+  console.log(`[${new Date()}] End populating cart items`);
 
+  console.log(`[${new Date()}] Start deduplicating cart IDs`);
   const uniqueCartIds = cartItems
     .reduce((set, cartItem) => set.add(cartItem.cartId), new Set<number>())
+  console.log(`[${new Date()}] End deduplicating cart IDs`);
 
+
+  console.log(`[${new Date()}] Start showing cart total price`);
   for (const cartId of uniqueCartIds) {
     const tx = await showCartTotalPrice(modelER, cartId);
     transactions.push(tx);
   }
+  console.log(`[${new Date()}] End showing cart total price`);
+
+  console.log(`[${new Date()}] Start writing transactions`);
+
+  const summarizedTransactions = transactions.map((t) => {
+    return { name: t.name, gasUsed: t.tx.receipt.gasUsed };
+  });
 
   const dirPath = `${__dirname}/../transactions`;
 
@@ -48,10 +63,18 @@ async function main() {
   }
 
   await fs.writeFile(
-    `${dirPath}/tx.txt`,
+    `${dirPath}/tx.json`,
     JSON.stringify(transactions, null, 2),
     { flag: 'w' }
   );
+
+  await fs.writeFile(
+    `${dirPath}/tx-summarized.json`,
+    JSON.stringify(summarizedTransactions, null, 2),
+    { flag: 'w' }
+  );
+  
+  console.log(`[${new Date()}] Start writing transactions`);
 }
 
 async function populateProducts(modelER: ModelERInstance) {

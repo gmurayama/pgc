@@ -2,16 +2,22 @@
 
 Gas consumption analysis of NoSQL models on Ethereum
 
-# How to run
+## How to run
 
-## Setup
+### Setup
 
 - [Ganache](https://trufflesuite.com/ganache/index.html)
 - Node.js
 
-## Deployment
+### Deployment
 
 ```sh
 npm run compile
 npm run migrate
+```
+
+### Benchmarks
+
+```sh
+npm run benchmarks
 ```
