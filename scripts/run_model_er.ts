@@ -40,7 +40,6 @@ async function main() {
     .reduce((set, cartItem) => set.add(cartItem.cartId), new Set<number>())
   console.log(`[${new Date()}] End deduplicating cart IDs`);
 
-
   console.log(`[${new Date()}] Start showing cart total price`);
   for (const cartId of uniqueCartIds) {
     const tx = await showCartTotalPrice(modelER, cartId);
@@ -83,24 +82,38 @@ async function populateProducts(modelER: ModelERInstance) {
   for (let product of products) {
     const transaction = await sendTransaction(modelER, 'addProduct', product.name, product.price);
     transactions.push({ name: 'addProduct', tx: transaction });
+    console.log(`populate products { name: ${product.name}, price: ${product.price} }`);
   }
 
   return transactions;
 }
 
 async function populateCartItems(modelER: ModelERInstance) {
-  const transactions: Array<Transaction> = [];
+  const transactions: Transaction[] = [];
 
-  for (const cartItem of cartItems) {
-    const transaction = await sendTransaction(modelER, 'addItemToCart', cartItem.cartId, cartItem.productId);
-    transactions.push({ name: 'addItemToCart', tx: transaction });
+  let promises: Promise<Transaction>[] = [];
+  for (let i = 0, cartItem = cartItems[i]; i < cartItems.length; i++, cartItem = cartItems[i]) {
+    const transaction = sendTransaction(modelER, 'addItemToCart', cartItem.cartId, cartItem.productId)
+      .then((t) => {
+        console.log(`${i + 1}/${cartItems.length}: populate cart items { cartId: ${cartItem.cartId}, productId: ${cartItem.productId} }`);
+        return { name: 'addItemToCart', tx: t } as Transaction;
+      }); 
+    promises.push(transaction);
+
+    if ((i + 1) % 1000 == 0) {
+      transactions.push(...(await Promise.all(promises)));
+      promises = [];
+    }
   }
+
+  transactions.push(...(await Promise.all(promises)));
 
   return transactions;
 }
 
 async function showCartTotalPrice(modelER: ModelERInstance, cartId: number) {
   const transaction = await sendTransaction(modelER, 'showTotal', cartId);
+  console.log(`show cart total price { cartId: ${cartId} }`);
   return { name: 'showTotal', tx: transaction } as Transaction;
 }
 
