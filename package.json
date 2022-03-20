@@ -14,7 +14,8 @@
     "migrate": "truffle migrate",
     "migrate:reset": "npm run migrate -- --reset",
     "deploy": "npm run compile && npm run migrate",
-    "benchmarks": "npm run build-ts && truffle exec ./scripts/run_model_er.js",
+    "start:er": "npm run build-ts && truffle exec ./scripts/run_model_er.js",
+    "benchmark:er": "npm run build-ts && ts-node ./scripts/run_benchmark_er.ts",
     "generate-data": "ts-node ./scripts/generate_data.ts"
   },
   "author": "Gustavo Murayama <gmurayama@outlook.com>",
