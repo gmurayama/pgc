@@ -1,4 +1,4 @@
-import erData from '../transactions/tx-summarized.json';
+import erData from '../data/transactions/tx-summarized.json';
 import { ModelERInstance } from '../types/truffle-contracts';
 import fs from 'fs';
 
@@ -26,6 +26,6 @@ const showTotal = erData
     return `${aggr}\n${d.gasUsed};${i + 1}`;
   }, csvHeader);
 
-fs.writeFileSync(`${__dirname}/../benchmark/er_model_${addProductFuncName}.csv`, addProduct);
-fs.writeFileSync(`${__dirname}/../benchmark/er_model_${addItemToCartFuncName}.csv`, addItemToCart);
-fs.writeFileSync(`${__dirname}/../benchmark/er_model_${showTotalFuncName}.csv`, showTotal);
+fs.writeFileSync(`${__dirname}/../data/csv/er_model_${addProductFuncName}.csv`, addProduct);
+fs.writeFileSync(`${__dirname}/../data/csv/er_model_${addItemToCartFuncName}.csv`, addItemToCart);
+fs.writeFileSync(`${__dirname}/../data/csv/er_model_${showTotalFuncName}.csv`, showTotal);

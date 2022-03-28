@@ -1,5 +1,5 @@
-import products from '../data/products.json';
-import cartItems from '../data/cartItems.json';
+import products from '../data/seed/products.json';
+import cartItems from '../data/seed/cartItems.json';
 import fs from 'fs/promises';
 import type { ModelERInstance } from '../types/truffle-contracts';
 
@@ -9,6 +9,7 @@ type ModelERFunc = { [P in keyof ModelERInstance['methods']]: ModelERInstance[P]
 
 interface Transaction {
   name: keyof ModelERFunc;
+  args: NonNullable<object>;
   tx: Truffle.TransactionResponse<any>
 }
 
@@ -53,7 +54,7 @@ async function main() {
     return { name: t.name, gasUsed: t.tx.receipt.gasUsed };
   });
 
-  const dirPath = `${__dirname}/../transactions`;
+  const dirPath = `${__dirname}/../data/transactions`;
 
   try {
     await fs.mkdir(dirPath);
@@ -81,7 +82,7 @@ async function populateProducts(modelER: ModelERInstance) {
 
   for (let product of products) {
     const transaction = await sendTransaction(modelER, 'addProduct', product.name, product.price);
-    transactions.push({ name: 'addProduct', tx: transaction });
+    transactions.push({ name: 'addProduct', tx: transaction, args: { name: product.name, price: product.price } });
     console.log(`populate products { name: ${product.name}, price: ${product.price} }`);
   }
 
@@ -96,7 +97,7 @@ async function populateCartItems(modelER: ModelERInstance) {
     const transaction = sendTransaction(modelER, 'addItemToCart', cartItem.cartId, cartItem.productId)
       .then((t) => {
         console.log(`${i + 1}/${cartItems.length}: populate cart items { cartId: ${cartItem.cartId}, productId: ${cartItem.productId} }`);
-        return { name: 'addItemToCart', tx: t } as Transaction;
+        return { name: 'addItemToCart', tx: t, args: { cartId: cartItem.cartId, productId: cartItem.productId } } as Transaction;
       }); 
     promises.push(transaction);
 
@@ -114,7 +115,7 @@ async function populateCartItems(modelER: ModelERInstance) {
 async function showCartTotalPrice(modelER: ModelERInstance, cartId: number) {
   const transaction = await sendTransaction(modelER, 'showTotal', cartId);
   console.log(`show cart total price { cartId: ${cartId} }`);
-  return { name: 'showTotal', tx: transaction } as Transaction;
+  return { name: 'showTotal', tx: transaction, args: { cartId } } as Transaction;
 }
 
 async function sendTransaction<T extends keyof ModelERFunc>(modelER: ModelERInstance, func: T, ...args: Parameters<ModelERFunc[T]>): Promise<Truffle.TransactionResponse<any>> {

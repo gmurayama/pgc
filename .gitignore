@@ -131,5 +131,4 @@ dist
 
 build
 types
-transactions
 scripts/*.js

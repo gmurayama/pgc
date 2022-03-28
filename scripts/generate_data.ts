@@ -26,8 +26,8 @@ const chance = new Chance();
 const products: Product[] = [];
 const cartItems: CartItem[] = [];
 
-for (let i = 0; i < 250; i++) {
-  products.push({ name: chance.string({ length: 5, pool: 'ABCDEFGHIKLMNOPQRSTUVWXYZ' }), price: chance.integer({ min: 100, max: 1000 * 100 }) });
+for (let i = 0; i < 200; i++) {
+  products.push({ name: chance.string({ length: 5, pool: 'ABCDEFGHIKLMNOPQRSTUVWXYZ' }), price: chance.integer({ min: 100, max: 200 }) });
 }
 
 for (let i = 1; i <= products.length; i++) {
@@ -35,5 +35,5 @@ for (let i = 1; i <= products.length; i++) {
   cartItems.push(...ci);
 }
 
-fs.writeFileSync(`${__dirname}/../data/products.json`, JSON.stringify(products, null, 2));
-fs.writeFileSync(`${__dirname}/../data/cartItems.json`, JSON.stringify(cartItems, null, 2));
+fs.writeFileSync(`${__dirname}/../data/seed/products.json`, JSON.stringify(products, null, 2));
+fs.writeFileSync(`${__dirname}/../data/seed/cartItems.json`, JSON.stringify(cartItems, null, 2));
