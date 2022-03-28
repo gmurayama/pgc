@@ -6,50 +6,26 @@ const addProductFuncName: keyof ModelERInstance['methods'] = 'addProduct';
 const addItemToCartFuncName: keyof ModelERInstance['methods'] = 'addItemToCart';
 const showTotalFuncName: keyof ModelERInstance['methods'] = 'showTotal';
 
-const addProductInitialData = {
-  serie: { name: `${addProductFuncName} gas`, data: [] as number[] },
-  categories: [] as string[]
-};
-
-const addItemToCartInitialData = {
-  serie: { name: `${addItemToCartFuncName} gas`, data: [] as number[] },
-  categories: [] as string[]
-};
-
-const showTotalInitialData = {
-  serie: { name: `${showTotalFuncName} gas`, data: [] as number[] },
-  categories: [] as string[]
-};
+const csvHeader = 'gas;transaction'
 
 const addProduct = erData
   .filter((d) => d.name === addProductFuncName)
   .reduce((aggr, d, i) => {
-    return {
-      serie: { name: `${addProductFuncName} gas`, data: [...aggr.serie.data, d.gasUsed] },
-      categories: [...aggr.categories, `${i + 1}o entry`]
-    };
-  }, addProductInitialData);
+    return `${aggr}\n${d.gasUsed};${i + 1}`;
+  }, csvHeader);
 
 const addItemToCart = erData
   .filter((d) => d.name === addItemToCartFuncName)
   .reduce((aggr, d, i) => {
-    return {
-      serie: { name: `${addItemToCartFuncName} gas`, data: [...aggr.serie.data, d.gasUsed] },
-      categories: [...aggr.categories, `${i + 1}o entry`]
-    };
-  }, addItemToCartInitialData);
+    return `${aggr}\n${d.gasUsed};${i + 1}`;
+  }, csvHeader);
 
 const showTotal = erData
   .filter((d) => d.name === showTotalFuncName)
   .reduce((aggr, d, i) => {
-    return {
-      serie: { name: `${showTotalFuncName} gas`, data: [...aggr.serie.data, d.gasUsed] },
-      categories: [...aggr.categories, `${i + 1} products in cart`]
-    };
-  }, showTotalInitialData);
+    return `${aggr}\n${d.gasUsed};${i + 1}`;
+  }, csvHeader);
 
-  const data = `var ${addProductFuncName} = ${JSON.stringify(addProduct)};
-  var ${addItemToCartFuncName} = ${JSON.stringify(addItemToCart)};
-  var ${showTotalFuncName} = ${JSON.stringify(showTotal)};`;
-
-  fs.writeFileSync(`${__dirname}/../benchmark/er_model.js`, data);
+fs.writeFileSync(`${__dirname}/../benchmark/er_model_${addProductFuncName}.csv`, addProduct);
+fs.writeFileSync(`${__dirname}/../benchmark/er_model_${addItemToCartFuncName}.csv`, addItemToCart);
+fs.writeFileSync(`${__dirname}/../benchmark/er_model_${showTotalFuncName}.csv`, showTotal);
