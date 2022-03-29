@@ -1,4 +1,4 @@
-import erData from '../data/transactions/tx-summarized.json';
+import erData from '../data/transactions/er-model-tx-summ.json';
 import { ModelERInstance } from '../types/truffle-contracts';
 import fs from 'fs';
 
