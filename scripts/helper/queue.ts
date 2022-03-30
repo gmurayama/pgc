@@ -25,6 +25,7 @@ export class Queue<T> {
     if (this.head.next === undefined) {
       this.head.next = node;
       this.last = node;
+      return;
     }
 
     // list has two or more items
