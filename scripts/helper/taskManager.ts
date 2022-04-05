@@ -29,12 +29,12 @@ export default class TaskManager<T> {
 
   private executor(scheduledTask: ScheduledTask<T>): void {
     if (this.tasksInExecution < this.maxAvailableResources) {
-      const { task, callback } = scheduledTask
+      const { task, callback } = scheduledTask;
       this.tasksInExecution++;
       task()
         .then((result) => {
           this.tasksInExecution--;
-          setImmediate(() => this.executeNextTaskFromQueue());
+          process.nextTick(() => this.executeNextTaskFromQueue());
           callback(result);
         });
       this.log(`resource added to the pool`)

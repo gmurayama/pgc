@@ -52,10 +52,8 @@ async function main() {
   log(`End deduplicating cart IDs`);
 
   log(`Start showing cart total price`);
-  for (const cartId of uniqueCartIds) {
-    const tx = await showCartTotalPrice(modelER, cartId);
-    transactions.push(tx);
-  }
+  tx = await showCartTotalPrice(modelER, [...uniqueCartIds]);
+  transactions.push(...tx);
   log(`End showing cart total price`);
 
   log(`Start writing transactions`);
@@ -83,52 +81,61 @@ async function main() {
     JSON.stringify(summarizedTransactions, null, 2),
     { flag: 'w' }
   );
-  
+
   log(`Start writing transactions`);
 }
 
-async function populateProducts(modelER: ModelERInstance) {
-  const transactions: Array<Transaction> = [];
+async function populateProducts(modelER: ModelERInstance): Promise<Transaction[]> {
+  const promises: Promise<Transaction>[] =
+    products.map((product, i) => {
+      const transaction = sendTransaction(modelER, 'addProduct', product.name, product.price)
+        .then((tx) => {
+          log(`${i + 1}/${products.length}: populate products { name: ${product.name}, price: ${product.price} }`);
+          return { name: 'addProduct', tx, args: { name: product.name, price: product.price } } as Transaction;
+        });
 
-  for (let product of products) {
-    const transaction = await sendTransaction(modelER, 'addProduct', product.name, product.price);
-    transactions.push({ name: 'addProduct', tx: transaction, args: { name: product.name, price: product.price } });
-    log(`populate products { name: ${product.name}, price: ${product.price} }`);
-  }
+      return transaction;
+    });
+
+  const transactions = await Promise.all(promises);
 
   return transactions;
 }
 
-async function populateCartItems(modelER: ModelERInstance) {
-  let promises: Promise<Transaction>[] = [];
-
-  for (let i = 0, cartItem = cartItems[i]; i < cartItems.length; i++, cartItem = cartItems[i]) {
-    const transaction = sendManagedTransaction(modelER, 'addItemToCart', cartItem.cartId, cartItem.productId)
-      .then((t) => {
+async function populateCartItems(modelER: ModelERInstance): Promise<Transaction[]> {
+  const promises: Promise<Transaction>[] = cartItems.map((cartItem, i) => {
+    const transaction = sendTransaction(modelER, 'addItemToCart', cartItem.cartId, cartItem.productId)
+      .then((tx) => {
         log(`${i + 1}/${cartItems.length}: populate cart items { cartId: ${cartItem.cartId}, productId: ${cartItem.productId} }`);
-        return { name: 'addItemToCart', tx: t, args: { cartId: cartItem.cartId, productId: cartItem.productId } } as Transaction;
+        return { name: 'addItemToCart', tx, args: { cartId: cartItem.cartId, productId: cartItem.productId } } as Transaction;
       });
 
-    promises.push(transaction);
-  }
+    return transaction;
+  });
 
-  const tx = await Promise.all(promises);
 
-  return tx;
+  const transactions = await Promise.all(promises);
+
+  return transactions;
 }
 
-async function showCartTotalPrice(modelER: ModelERInstance, cartId: number) {
-  const transaction = await sendTransaction(modelER, 'showTotal', cartId);
-  log(`show cart total price { cartId: ${cartId} }`);
-  return { name: 'showTotal', tx: transaction, args: { cartId } } as Transaction;
+async function showCartTotalPrice(modelER: ModelERInstance, cartIds: number[]): Promise<Transaction[]> {
+  const promises = cartIds.map((cartId, i) => {
+    const transaction = sendTransaction(modelER, 'showTotal', cartId)
+      .then((tx) => {
+        log(`${i + 1}/${cartIds.length}: show cart total price { cartId: ${cartId} }`);
+        return { name: 'showTotal', tx, args: { cartId } } as Transaction;
+      });
+
+    return transaction;
+  });
+
+  const transactions = await Promise.all(promises);
+
+  return transactions;
 }
 
 function sendTransaction<T extends keyof ModelERFunc>(modelER: ModelERInstance, func: T, ...args: Parameters<ModelERFunc[T]>): Promise<Truffle.TransactionResponse<any>> {
-  // @ts-ignore (some functions does not have the sendTransaction function in their type annotation)
-  return modelER[func].sendTransaction(...args)
-}
-
-function sendManagedTransaction<T extends keyof ModelERFunc>(modelER: ModelERInstance, func: T, ...args: Parameters<ModelERFunc[T]>): Promise<Truffle.TransactionResponse<any>> {
   return taskManager
     .run(modelER, func, ...args)
 }
